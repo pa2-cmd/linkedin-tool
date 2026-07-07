@@ -62,17 +62,19 @@ function useStorageString(key: string, fallback: string): string {
   );
 }
 
-// ═══ SETTINGS ═══
 export interface LinkedInSettings {
   // Identity
   fullName: string;
   headline: string;
-  industry: string;
   location: string;
   profilePhotoUrl: string;
   bannerUrl: string;
+  about: string;
+  experience: string;
+  skills: string;
 
   // LinkedIn Context
+  industry: string;
   targetAudience: string;
   contentPillars: string[]; // 3-5 topics user posts about
   competitors: string; // competitor LinkedIn URLs
@@ -87,10 +89,13 @@ export interface LinkedInSettings {
 export const DEFAULT_SETTINGS: LinkedInSettings = {
   fullName: "",
   headline: "",
-  industry: "",
   location: "India",
   profilePhotoUrl: "",
   bannerUrl: "",
+  about: "",
+  experience: "",
+  skills: "",
+  industry: "",
   targetAudience: "",
   contentPillars: [],
   competitors: "",

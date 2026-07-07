@@ -95,20 +95,27 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           fullName: crawledData.fullName || prev.fullName,
           headline: crawledData.headline || prev.headline,
           location: crawledData.location || prev.location,
+          about: crawledData.about || prev.about,
+          experience: crawledData.experience || prev.experience,
+          skills: crawledData.skills || prev.skills,
         }));
         
-        await fetch("/api/profile/snapshot", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            headline: crawledData.headline,
-            about: crawledData.about,
-            experience: crawledData.experience,
-            skills: crawledData.skills,
-            score: 75,
-            aiRewrites: "{}",
-          }),
-        });
+        try {
+          await fetch("/api/profile/snapshot", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              headline: crawledData.headline,
+              about: crawledData.about,
+              experience: crawledData.experience,
+              skills: crawledData.skills,
+              score: 75,
+              aiRewrites: "{}",
+            }),
+          });
+        } catch (dbErr) {
+          console.warn("Could not save snapshot to database (expected on serverless):", dbErr);
+        }
 
         setCrawlSuccess(true);
         setTimeout(() => setCrawlSuccess(false), 3000);

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { User, Sparkles, CheckCircle2, Copy, AlertCircle, ShieldAlert, Award, Globe, History, Trash2, Check, RefreshCw } from "lucide-react";
 
 type RewriteStyle = "thoughtLeader" | "storyteller" | "seoBooster";
-import { useSettings } from "@/lib/storage";
+import { useSettings, saveSettings } from "@/lib/storage";
 import { auditProfile, type ProfileAuditResult } from "@/lib/ai/profile-analyst";
 
 export default function ProfileOptimizer() {
@@ -20,9 +20,14 @@ export default function ProfileOptimizer() {
   }, []);
 
   const [headline, setHeadline] = useState(settings.headline || "");
-  const [about, setAbout] = useState("");
-  const [experience, setExperience] = useState("");
-  const [skills, setSkills] = useState("");
+  const [about, setAbout] = useState(settings.about || "");
+  const [experience, setExperience] = useState(settings.experience || "");
+  const [skills, setSkills] = useState(settings.skills || "");
+
+  // Sync inputs back to localStorage settings
+  useEffect(() => {
+    saveSettings({ headline, about, experience, skills });
+  }, [headline, about, experience, skills]);
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ProfileAuditResult | null>(null);

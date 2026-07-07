@@ -13,6 +13,10 @@ export default function Settings() {
   const [hasSystemKey, setHasSystemKey] = useState(false);
 
   useEffect(() => {
+    setSettings(currentSettings);
+  }, [currentSettings]);
+
+  useEffect(() => {
     fetch("/api/ai/status")
       .then((res) => res.json())
       .then((data) => setHasSystemKey(!!data.hasSystemKey))
