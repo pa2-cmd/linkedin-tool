@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PenTool, Sparkles, Copy, Award, AlertCircle, Check, Calendar as CalendarIcon, Globe, RefreshCw } from "lucide-react";
+import { PenTool, Sparkles, Copy, Award, AlertCircle, Check, Calendar as CalendarIcon, Globe, RefreshCw, Save } from "lucide-react";
 import { useSettings } from "@/lib/storage";
 import { writeLinkedInPost, type PostFormat } from "@/lib/ai/linkedin-writer";
 import { editLinkedInPost, type EditResult } from "@/lib/ai/linkedin-editor";
@@ -47,6 +47,8 @@ export default function ContentStudio() {
   const [isCopied, setIsCopied] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState<"preview" | "improvements">("preview");
   const [isScheduled, setIsScheduled] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [hasConnectedProfile, setHasConnectedProfile] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
@@ -87,6 +89,36 @@ export default function ContentStudio() {
       setError("An error occurred while publishing to LinkedIn.");
     } finally {
       setIsPublishing(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (!draftPost) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: topic || "AI LinkedIn Post",
+          format,
+          content: draftPost,
+          tone,
+          status: "draft",
+        }),
+      });
+      if (res.ok) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2000);
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to save draft.");
+      }
+    } catch {
+      setError("An error occurred while saving the draft.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -354,6 +386,29 @@ export default function ContentStudio() {
                     <>
                       <Copy className="w-4 h-4" />
                       <span>Copy Post</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  disabled={isSaving}
+                  onClick={handleSaveDraft}
+                  className="px-3.5 py-2 bg-white border border-border hover:bg-bg-surface text-txt-secondary hover:text-txt rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
+                >
+                  {isSaving ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : saveSuccess ? (
+                    <>
+                      <Check className="w-4 h-4 text-success" />
+                      <span className="text-success">Saved</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>Save Draft</span>
                     </>
                   )}
                 </button>
