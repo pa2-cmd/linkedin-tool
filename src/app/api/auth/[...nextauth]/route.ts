@@ -1,10 +1,13 @@
 import NextAuth from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 function initDynamicUrl(req: Request) {
   const host = req.headers.get("host") || "localhost:3000";
   const proto = req.headers.get("x-forwarded-proto") || "http";
   process.env.NEXTAUTH_URL = `${proto}://${host}`;
+  console.log("initDynamicUrl - NEXTAUTH_URL set to:", process.env.NEXTAUTH_URL);
 }
 
 export async function GET(req: Request, ctx: { params: Record<string, string | string[]> }) {
