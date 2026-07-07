@@ -9,8 +9,7 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
     LinkedInProvider({
       clientId: process.env.LINKEDIN_CLIENT_ID,
       clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-      issuer: "https://www.linkedin.com",
-      jwks_endpoint: "https://www.linkedin.com/oauth/openid/jwks",
+      issuer: "https://www.linkedin.com/oauth",
       client: {
         token_endpoint_auth_method: "client_secret_post",
       },
