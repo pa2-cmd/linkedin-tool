@@ -78,3 +78,5 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || "temp_secret_for_vercel_build",
   debug: true,
 };
+
+// Vercel redeploy trigger comment
