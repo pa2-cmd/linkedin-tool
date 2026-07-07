@@ -1,37 +1,34 @@
 import { NextAuthOptions } from "next-auth";
+import LinkedInProvider from "next-auth/providers/linkedin";
 import { prisma } from "@/lib/prisma";
 
 const providers: NextAuthOptions["providers"] = [];
 
 if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
-  providers.push({
-    id: "linkedin",
-    name: "LinkedIn",
-    type: "oauth",
-    issuer: "https://www.linkedin.com",
-    clientId: process.env.LINKEDIN_CLIENT_ID,
-    clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-    client: {
-      token_endpoint_auth_method: "client_secret_post",
-    },
-    authorization: {
-      url: "https://www.linkedin.com/oauth/v2/authorization",
-      params: {
-        scope: "openid profile email w_member_social",
-        response_type: "code",
+  providers.push(
+    LinkedInProvider({
+      clientId: process.env.LINKEDIN_CLIENT_ID,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+      issuer: "https://www.linkedin.com",
+      jwks_endpoint: "https://www.linkedin.com/oauth/openid/jwks",
+      client: {
+        token_endpoint_auth_method: "client_secret_post",
       },
-    },
-    token: "https://www.linkedin.com/oauth/v2/accessToken",
-    userinfo: "https://api.linkedin.com/v2/userinfo",
-    profile(profile) {
-      return {
-        id: profile.sub,
-        name: profile.name,
-        email: profile.email,
-        image: profile.picture,
-      };
-    },
-  });
+      authorization: {
+        params: {
+          scope: "openid profile email w_member_social",
+        },
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        };
+      },
+    })
+  );
 }
 
 export const authOptions: NextAuthOptions = {
