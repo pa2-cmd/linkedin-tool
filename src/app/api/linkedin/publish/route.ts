@@ -1,21 +1,23 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/firebase";
 
 export async function POST(request: Request) {
   try {
     const session = (await getServerSession(authOptions)) as { linkedinId?: string } | null;
-    let profile = null;
+    let profile: any = null;
 
     if (session && session.linkedinId) {
-      profile = await prisma.linkedProfile.findUnique({
-        where: { linkedinId: session.linkedinId },
-      });
+      const doc = await db.collection("linked_profiles").doc(session.linkedinId).get();
+      profile = doc.exists ? { id: doc.id, ...doc.data() } : null;
     }
 
     if (!profile) {
-      profile = await prisma.linkedProfile.findFirst();
+      const profilesSnapshot = await db.collection("linked_profiles").limit(1).get();
+      profile = profilesSnapshot.empty
+        ? null
+        : { id: profilesSnapshot.docs[0].id, ...profilesSnapshot.docs[0].data() };
     }
 
     if (!profile) {
@@ -62,10 +64,7 @@ export async function POST(request: Request) {
 
     if (postId) {
       try {
-        await prisma.postHistory.update({
-          where: { id: postId },
-          data: { status: "published" },
-        });
+        await db.collection("posts").doc(postId).update({ status: "published" });
       } catch (dbErr) {
         console.error("Failed to update post status in DB:", dbErr);
       }

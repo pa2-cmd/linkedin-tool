@@ -1,13 +1,25 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/firebase";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const snapshots = await prisma.profileSnapshot.findMany({
-      orderBy: { createdAt: "desc" },
+    const snapshotsSnapshot = await db.collection("profile_snapshots")
+      .orderBy("createdAt", "desc")
+      .get();
+      
+    const snapshots = snapshotsSnapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt instanceof Date 
+          ? data.createdAt.toISOString() 
+          : data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+      };
     });
+    
     return NextResponse.json(snapshots);
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);
@@ -24,16 +36,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Headline and About sections are required" }, { status: 400 });
     }
 
-    const snapshot = await prisma.profileSnapshot.create({
-      data: {
-        headline,
-        about,
-        experience,
-        skills,
-        score: score ? parseInt(score) : null,
-        aiRewrites: aiRewrites ? JSON.stringify(aiRewrites) : null,
-      },
+    const docRef = await db.collection("profile_snapshots").add({
+      headline,
+      about,
+      experience: experience || null,
+      skills: skills || null,
+      score: score ? parseInt(score) : null,
+      aiRewrites: aiRewrites ? JSON.stringify(aiRewrites) : null,
+      createdAt: new Date(),
     });
+
+    const newDoc = await docRef.get();
+    const snapshot = {
+      id: docRef.id,
+      ...newDoc.data(),
+    };
 
     return NextResponse.json(snapshot);
   } catch (err: unknown) {
@@ -49,7 +66,7 @@ export async function DELETE(request: Request) {
     if (!id) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }
-    await prisma.profileSnapshot.delete({ where: { id } });
+    await db.collection("profile_snapshots").doc(id).delete();
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);

@@ -1,25 +1,31 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/firebase";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const metrics = await prisma.weeklyMetrics.findMany({
-      orderBy: { weekStart: "asc" },
+    const snapshot = await db.collection("weekly_metrics")
+      .orderBy("weekStart", "asc")
+      .get();
+    const logs = snapshot.docs.map((doc: any, index: number) => {
+      const data = doc.data();
+      const weekStartRaw = data.weekStart;
+      const weekStartDate = weekStartRaw instanceof Date 
+        ? weekStartRaw 
+        : weekStartRaw?.toDate?.() || new Date(weekStartRaw);
+
+      return {
+        id: doc.id,
+        week: `Week ${index + 1}`,
+        weekStart: weekStartDate.toISOString(),
+        connections: data.connections,
+        profileViews: data.profileViews,
+        searchAppearances: data.searchAppearances,
+        postImpressions: data.postImpressions,
+        engagementRate: data.engagementRate,
+      };
     });
-    
-    // Map database records to the frontend WeeklyLog format
-    const logs = metrics.map((m, index) => ({
-      id: m.id,
-      week: `Week ${index + 1}`,
-      weekStart: m.weekStart.toISOString(),
-      connections: m.connections,
-      profileViews: m.profileViews,
-      searchAppearances: m.searchAppearances,
-      postImpressions: m.postImpressions,
-      engagementRate: m.engagementRate,
-    }));
     
     return NextResponse.json(logs);
   } catch (err: unknown) {
@@ -34,26 +40,39 @@ export async function POST(request: Request) {
     const { connections, profileViews, searchAppearances, postImpressions, engagementRate = 0 } = body;
 
     // Determine the next weekStart date (7 days after the last entry, or today)
-    const lastEntry = await prisma.weeklyMetrics.findFirst({
-      orderBy: { weekStart: "desc" },
-    });
+    const lastEntrySnapshot = await db.collection("weekly_metrics")
+      .orderBy("weekStart", "desc")
+      .limit(1)
+      .get();
+
+    const lastEntry = lastEntrySnapshot.empty ? null : lastEntrySnapshot.docs[0].data();
 
     let weekStart = new Date();
     if (lastEntry) {
-      weekStart = new Date(lastEntry.weekStart);
+      const lastWeekStartRaw = lastEntry.weekStart;
+      const lastWeekStartDate = lastWeekStartRaw instanceof Date 
+        ? lastWeekStartRaw 
+        : lastWeekStartRaw?.toDate?.() || new Date(lastWeekStartRaw);
+        
+      weekStart = new Date(lastWeekStartDate);
       weekStart.setDate(weekStart.getDate() + 7);
     }
 
-    const metric = await prisma.weeklyMetrics.create({
-      data: {
-        weekStart,
-        connections: parseInt(connections) || 0,
-        profileViews: parseInt(profileViews) || 0,
-        searchAppearances: parseInt(searchAppearances) || 0,
-        postImpressions: parseInt(postImpressions) || 0,
-        engagementRate: parseFloat(engagementRate) || 0,
-      },
+    const docRef = await db.collection("weekly_metrics").add({
+      weekStart,
+      connections: parseInt(connections) || 0,
+      profileViews: parseInt(profileViews) || 0,
+      searchAppearances: parseInt(searchAppearances) || 0,
+      postImpressions: parseInt(postImpressions) || 0,
+      engagementRate: parseFloat(engagementRate) || 0,
+      createdAt: new Date(),
     });
+
+    const newDoc = await docRef.get();
+    const metric = {
+      id: docRef.id,
+      ...newDoc.data(),
+    };
 
     return NextResponse.json(metric);
   } catch (err: unknown) {

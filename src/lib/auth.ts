@@ -1,6 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import LinkedInProvider from "next-auth/providers/linkedin";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/firebase";
 
 const providers: NextAuthOptions["providers"] = [];
 
@@ -39,24 +39,16 @@ export const authOptions: NextAuthOptions = {
         token.linkedinId = account.providerAccountId;
 
         try {
-          await prisma.linkedProfile.upsert({
-            where: { linkedinId: account.providerAccountId },
-            update: {
-              name: token.name || "",
-              email: token.email || "",
-              profilePicUrl: token.picture || "",
-              accessToken: account.access_token || "",
-              tokenExpiresAt: account.expires_at ? new Date(account.expires_at * 1000) : null,
-            },
-            create: {
-              linkedinId: account.providerAccountId,
-              name: token.name || "",
-              email: token.email || "",
-              profilePicUrl: token.picture || "",
-              accessToken: account.access_token || "",
-              tokenExpiresAt: account.expires_at ? new Date(account.expires_at * 1000) : null,
-            },
-          });
+          const profileRef = db.collection("linked_profiles").doc(account.providerAccountId);
+          await profileRef.set({
+            linkedinId: account.providerAccountId,
+            name: token.name || "",
+            email: token.email || "",
+            profilePicUrl: token.picture || "",
+            accessToken: account.access_token || "",
+            tokenExpiresAt: account.expires_at ? new Date(account.expires_at * 1000) : null,
+            updatedAt: new Date(),
+          }, { merge: true });
         } catch (error) {
           console.error("Failed to upsert LinkedIn profile in database:", error);
         }

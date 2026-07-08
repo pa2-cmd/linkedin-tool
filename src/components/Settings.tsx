@@ -203,11 +203,43 @@ export default function Settings() {
                 />
               </div>
 
+              <div className="border-t border-border pt-4 mt-4 space-y-4">
+                <div>
+                  <h4 className="text-xs font-extrabold text-txt uppercase tracking-wider">LinkedIn Scraping Session Cookies</h4>
+                  <p className="text-[11px] text-txt-secondary font-medium mt-0.5 leading-relaxed">
+                    Required to automatically track post analytics and search metrics, mimicking a real browser session. Obtain these from your browser's Developer Tools (Application &gt; Cookies &gt; linkedin.com).
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-txt-secondary uppercase tracking-wider">li_at Cookie</label>
+                    <input
+                      type="password"
+                      value={settings.liAtCookie || ""}
+                      onChange={(e) => update("liAtCookie", e.target.value)}
+                      placeholder="AQEDAT..."
+                      className="w-full px-4 py-3 rounded-xl bg-bg-surface border border-border text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-txt-secondary uppercase tracking-wider">JSESSIONID Cookie</label>
+                    <input
+                      type="text"
+                      value={settings.jSessionId || ""}
+                      onChange={(e) => update("jSessionId", e.target.value)}
+                      placeholder='ajax:430...'
+                      className="w-full px-4 py-3 rounded-xl bg-bg-surface border border-border text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="p-4 rounded-xl bg-bg-surface border border-border/80 flex items-start gap-3">
                 <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div className="text-xs text-txt-secondary leading-relaxed font-medium space-y-1">
                   <p>
-                    Your API Key is kept <strong>only in local storage</strong> and sent directly to Google Gemini servers to run optimization processes. It is never stored or logged on third-party servers.
+                    Your API Key and session credentials are kept <strong>only in local storage</strong> and sent directly to Google Gemini servers and LinkedIn endpoints to run optimization and sync processes. They are never stored or logged on third-party servers.
                   </p>
                   <p>
                     You can sign up and acquire a free personal API key on the official Google site:{" "}

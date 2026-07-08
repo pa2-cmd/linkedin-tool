@@ -84,6 +84,10 @@ export interface LinkedInSettings {
   geminiApiKey: string;
   aiModel: "flash" | "pro";
   responseStyle: string;
+
+  // Session Cookies for Scraping
+  liAtCookie: string;
+  jSessionId: string;
 }
 
 export const DEFAULT_SETTINGS: LinkedInSettings = {
@@ -103,6 +107,8 @@ export const DEFAULT_SETTINGS: LinkedInSettings = {
   geminiApiKey: "",
   aiModel: "flash",
   responseStyle: "balanced",
+  liAtCookie: "",
+  jSessionId: "",
 };
 
 export function getSettings(): LinkedInSettings {
