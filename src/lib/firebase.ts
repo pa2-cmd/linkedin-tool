@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getApps, initializeApp, cert, getApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
@@ -105,6 +106,7 @@ class MockQuery {
         id: doc.id,
         exists: true,
         data: () => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, ...rest } = doc;
           return rest;
         },

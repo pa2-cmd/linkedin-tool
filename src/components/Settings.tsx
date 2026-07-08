@@ -207,7 +207,7 @@ export default function Settings() {
                 <div>
                   <h4 className="text-xs font-extrabold text-txt uppercase tracking-wider">LinkedIn Scraping Session Cookies</h4>
                   <p className="text-[11px] text-txt-secondary font-medium mt-0.5 leading-relaxed">
-                    Required to automatically track post analytics and search metrics, mimicking a real browser session. Obtain these from your browser's Developer Tools (Application &gt; Cookies &gt; linkedin.com).
+                    Required to automatically track post analytics and search metrics, mimicking a real browser session. Obtain these from your browser&apos;s Developer Tools (Application &gt; Cookies &gt; linkedin.com).
                   </p>
                 </div>
                 

@@ -38,6 +38,7 @@ export async function scrapeLinkedInMetrics(
   }
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const csrfToken = cleanCsrfToken(jSessionId);
 
     // Simulated fetch call to LinkedIn private voyager API
