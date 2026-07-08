@@ -21,6 +21,8 @@ export interface WritePostInput {
   contentPillars: string[];
   brandVoice: string;
   apiKey: string;
+  aiModel?: "flash" | "pro";
+  examples?: string[];
 }
 
 const FORMAT_SPECS: Record<PostFormat, { name: string; structure: string; notes: string }> = {
@@ -65,6 +67,12 @@ export async function writeLinkedInPost(input: WritePostInput): Promise<string> 
   const spec = FORMAT_SPECS[input.format] || FORMAT_SPECS.thought_leadership;
   const toneDesc = TONE_MAP[input.tone] || TONE_MAP.professional;
   const today = new Date().toISOString().split("T")[0];
+  const modelTier = input.aiModel === "pro" ? "pro" : "flash";
+
+  // Build few-shot examples if present
+  const examplesContext = input.examples && input.examples.length > 0
+    ? `\nFEW-SHOT EXAMPLES (Imitate their tone, spacing, layout, and formatting style closely):\n${input.examples.map((ex, idx) => `EXAMPLE ${idx + 1}:\n"""\n${ex}\n"""`).join("\n\n")}\n`
+    : "";
 
   const prompt = `You are an elite LinkedIn content strategist who has helped 500+ professionals grow their LinkedIn following.
 
@@ -78,31 +86,32 @@ CONTEXT:
 - Content Pillars: ${input.contentPillars.join(", ")}
 - Brand Voice: ${input.brandVoice}
 - Desired Tone: ${toneDesc}
-
+${examplesContext}
 FORMAT SPECIFICATION:
 - Name: ${spec.name}
 - Structure: ${spec.structure}
 - Platform Rules: ${spec.notes}
 
-LINKEDIN ALGORITHM RULES (2025-2026):
-1. First line is EVERYTHING — it appears before "...see more". Make it impossible to not click.
+LINKEDIN ALGORITHM & READABILITY RULES:
+1. First line is EVERYTHING — it appears before "...see more". Make it impossible to not click. Keep it clean and direct.
 2. LinkedIn rewards dwell time. Use line breaks generously (double-space between paragraphs).
 3. Posts with 1-2 sentences per paragraph perform 40% better than walls of text.
 4. Questions at the end drive 2x more comments.
 5. Hashtags: Use 3-5 maximum. Place them at the very end, not inline.
-6. Emojis: Use sparingly (1-3 max). They should add meaning, not decoration.
-7. Posts between 800-1500 characters get the most engagement.
-8. Personal stories with lessons outperform generic advice 3:1.
+6. Emojis: Use extremely sparingly (1-2 max per post). They should add meaning, not decoration. Never put emojis at the start of every single line.
+7. Personal stories with lessons outperform generic advice 3:1.
 
-QUALITY RULES:
-- NO generic platitudes ("In today's fast-paced world...", "It's no secret that...")
-- NO filler sentences. Every line must earn its place.
-- Use specific numbers, examples, or stories — not vague claims.
-- The hook must be a bold claim, surprising stat, personal failure, or contrarian take.
-- Write like a real human, not a corporate press release.
+CRITICAL ANTI-AI WRITING RULES (FORBIDDEN PATTERNS):
+1. BANNED WORDS & PHRASES: Do NOT use these machine-generated tells:
+   - "In today's fast-paced/rapidly evolving world/digital landscape"
+   - "leverage", "utilize", "robust", "streamline", "delve"
+   - "testament", "foster", "seamless", "pivotal", "embarking on a journey"
+   - "game-changer", "revolutionary", "unlock", "synergy"
+2. EMOJI SPAM: Do NOT start bullet points with emojis. Use simple numbers, hyphens, or dashes. Emojis must not feel machine-generated.
+3. Keep the writing plain, direct, and conversational. Use simple, active verbs. Avoid academic or corporate vocabulary. Write as if speaking to a friend over coffee.
 
 Output ONLY the LinkedIn post text. No markdown, no explanations, no JSON wrapper.`;
 
-  const result = await generate(prompt, { apiKey: input.apiKey, tier: "flash" });
+  const result = await generate(prompt, { apiKey: input.apiKey, tier: modelTier });
   return typeof result === "string" ? result : JSON.stringify(result);
 }

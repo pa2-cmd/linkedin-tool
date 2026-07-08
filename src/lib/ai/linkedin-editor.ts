@@ -10,6 +10,7 @@ export interface EditPostInput {
   format: string;
   audience: string;
   apiKey: string;
+  aiModel?: "flash" | "pro";
 }
 
 export interface EditResult {
@@ -24,6 +25,8 @@ export interface EditResult {
 }
 
 export async function editLinkedInPost(input: EditPostInput): Promise<EditResult> {
+  const modelTier = input.aiModel === "pro" ? "pro" : "flash";
+  
   const prompt = `You are a ruthless LinkedIn content editor. Your edits have turned mediocre posts into viral hits with 100K+ impressions.
 
 TASK: Edit and score this LinkedIn post. Be AGGRESSIVE with improvements.
@@ -46,6 +49,11 @@ YOUR EDITING PHILOSOPHY:
 7. Check emoji usage — max 1-3, meaningful only.
 8. Ensure total length is 800-1500 characters for optimal reach.
 
+STRICT EDITING RULES:
+- Identify and REMOVE any "AI-isms" (e.g. leverage, utilize, robust, streamline, delve, testament, landscape, foster, seamless, pivotal, unlock, revolutionizing).
+- Convert any emoji-heavy bullet lists into plain bullet points (e.g., using numbers or simple dashes "-"). Emojis should never decorate the start of list lines.
+- Ensure the resulting text flows naturally like a human post, and reads with an authentic, conversational voice.
+
 Return this JSON:
 {
   "editedPost": "the fully improved post — noticeably better than the original",
@@ -60,5 +68,5 @@ Return this JSON:
 
 SCORING: Most posts land 50-70. Only give 85+ if genuinely exceptional. Be honest.`;
 
-  return (await generateJSON(prompt, { apiKey: input.apiKey, tier: "flash" })) as unknown as EditResult;
+  return (await generateJSON(prompt, { apiKey: input.apiKey, tier: modelTier })) as unknown as EditResult;
 }

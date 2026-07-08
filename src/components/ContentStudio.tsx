@@ -36,6 +36,19 @@ export default function ContentStudio() {
       .catch((err) => console.error(err));
   }, []);
 
+  const [viralPosts, setViralPosts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/viral-library")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setViralPosts(data);
+        }
+      })
+      .catch((err) => console.error("Error loading viral posts library:", err));
+  }, []);
+
   const [topic, setTopic] = useState("");
   const [format, setFormat] = useState<PostFormat>("thought_leadership");
   const [tone, setTone] = useState("professional");
@@ -165,6 +178,19 @@ export default function ContentStudio() {
     setEditResult(null);
 
     try {
+      // Get 1-2 examples from the library
+      const matched = viralPosts
+        .filter((p: any) => 
+          p.category?.toLowerCase().includes(format.replace("_", " ")) || 
+          p.category?.toLowerCase().includes(topic.toLowerCase())
+        )
+        .slice(0, 2)
+        .map((p: any) => p.content);
+        
+      const finalExamples = matched.length > 0 
+        ? matched 
+        : viralPosts.slice(0, 2).map((p: any) => p.content);
+
       // 1. Generate post using Writer Agent
       const rawPost = await writeLinkedInPost({
         topic,
@@ -175,6 +201,8 @@ export default function ContentStudio() {
         contentPillars: settings.contentPillars || [],
         brandVoice: settings.brandVoice || "Professional",
         apiKey: settings.geminiApiKey,
+        aiModel: settings.aiModel || "flash",
+        examples: finalExamples,
       });
 
       setDraftPost(rawPost);
@@ -185,6 +213,7 @@ export default function ContentStudio() {
         format,
         audience: settings.targetAudience || "LinkedIn network",
         apiKey: settings.geminiApiKey,
+        aiModel: settings.aiModel || "flash",
       });
 
       setEditResult(audit);
