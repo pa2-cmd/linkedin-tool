@@ -220,6 +220,23 @@ export default function ContentStudio() {
       setEditResult(audit);
       setDraftPost(audit.editedPost);
       setActivePreviewTab("preview");
+
+      // 3. Automatically save the generated post as a draft in Firestore
+      try {
+        await fetch("/api/posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic: topic || "AI Generated Post",
+            format,
+            content: audit.editedPost,
+            tone,
+            status: "draft",
+          }),
+        });
+      } catch (saveErr) {
+        console.error("Failed to automatically save draft:", saveErr);
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to generate content. Please try again.");
     } finally {
