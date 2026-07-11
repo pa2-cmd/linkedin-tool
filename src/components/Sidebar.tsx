@@ -10,7 +10,10 @@ import {
   BarChart3,
   Settings,
   ChevronLeft,
+  ShieldCheck,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 
 const LinkedInIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -49,6 +52,17 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const { user, logout } = useAuth();
+
+  const groups = [...NAV_GROUPS];
+  if (user?.isAdmin) {
+    groups.push({
+      title: "ADMIN",
+      items: [
+        { id: "admin", label: "Admin Panel", icon: ShieldCheck },
+      ],
+    });
+  }
 
   return (
     <>
@@ -79,7 +93,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
 
         {/* Nav Groups */}
         <div className="flex-1 px-3 space-y-6 overflow-y-auto custom-scroll">
-          {NAV_GROUPS.map((group) => (
+          {groups.map((group) => (
             <div key={group.title} className="space-y-1">
               {!collapsed && (
                 <h3 className="px-3 text-[10px] font-extrabold text-txt-muted uppercase tracking-[0.18em] mb-2">
@@ -135,6 +149,16 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
             {!collapsed && <span className="font-semibold">Settings</span>}
           </button>
 
+          {user && (
+            <button
+              onClick={logout}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-all duration-300 cursor-pointer"
+            >
+              <LogOut className="w-[18px] h-[18px] shrink-0" strokeWidth={2} />
+              {!collapsed && <span className="font-semibold">Log Out</span>}
+            </button>
+          )}
+
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[11px] text-txt-muted hover:bg-bg-surface cursor-pointer"
@@ -166,6 +190,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           { id: "profile", icon: User, label: "Profile" },
           { id: "studio", icon: PenTool, label: "Studio" },
           { id: "coach", icon: MessageCircle, label: "Coach" },
+          ...(user?.isAdmin ? [{ id: "admin", icon: ShieldCheck, label: "Admin" }] : []),
           { id: "settings", icon: Settings, label: "Settings" },
         ].map((item) => {
           const Icon = item.icon;
