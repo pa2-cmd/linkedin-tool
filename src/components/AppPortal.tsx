@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
+import React, { useState, useEffect } from "react";
 import Onboarding from "@/components/Onboarding";
 import Dashboard from "@/components/Dashboard";
 import ProfileOptimizer from "@/components/ProfileOptimizer";
@@ -16,9 +14,44 @@ import Login from "@/components/Login";
 import AccessDenied from "@/components/AccessDenied";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { useIsOnboarded } from "@/lib/storage";
+import {
+  Home,
+  User,
+  Video,
+  MessageSquare,
+  Calendar,
+  BarChart3,
+  Settings as SettingsIcon,
+  Mail,
+  Bell,
+  LogOut
+} from "lucide-react";
+
+interface SidebarBtnProps {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+}
+
+function SidebarBtn({ icon: Icon, label, active = false, onClick }: SidebarBtnProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-300 ${
+        active
+          ? "bg-[#0077b5] text-white shadow-lg shadow-blue-100 scale-105"
+          : "text-slate-400 hover:bg-white/80 hover:text-[#0077b5]"
+      }`}
+    >
+      <Icon className="w-5 h-5 shrink-0" />
+      <span className="text-[9px] font-black uppercase tracking-wide scale-90">{label}</span>
+    </button>
+  );
+}
 
 function AppContent({ defaultTab = "dashboard" }: { defaultTab?: string }) {
-  const { user, loading, hasAccess } = useAuth();
+  const { user, loading, hasAccess, logout } = useAuth();
   const [activeTab, setActiveTab] = useState(defaultTab);
   const isOnboarded = useIsOnboarded();
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -49,8 +82,7 @@ function AppContent({ defaultTab = "dashboard" }: { defaultTab?: string }) {
     );
   }
 
-  // If not logged in, render the landing page.
-  // When they click sign in, show the login component.
+  // If not logged in, redirect to login
   if (!user) {
     const commonHomeUrl = process.env.NEXT_PUBLIC_SOCIAL_MEDIA_URL || "https://social-media-tool-three.vercel.app";
     return (
@@ -76,13 +108,94 @@ function AppContent({ defaultTab = "dashboard" }: { defaultTab?: string }) {
         <Onboarding onComplete={() => setShowOnboarding(false)} />
       )}
 
-      <div className="flex h-screen overflow-hidden bg-bg">
-        {activeTab !== "dashboard" && <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />}
+      <div className="min-h-screen bg-[#F0F4F8] relative overflow-hidden flex flex-col lg:flex-row font-sans">
+        {/* Decorative Floating 3D/Glass Objects in Background */}
+        <div className="absolute top-10 left-10 w-32 h-32 rounded-full bg-blue-300/20 blur-2xl pointer-events-none" />
+        <div className="absolute bottom-10 right-10 w-48 h-48 rounded-full bg-purple-300/10 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-12 w-16 h-16 rounded-full bg-indigo-300/10 blur-xl pointer-events-none animate-pulse" />
 
-        <div className="flex-1 flex flex-col overflow-hidden relative">
-          {activeTab !== "dashboard" && <Header activeTab={activeTab} />}
+        {/* Global Sidebar (Left) */}
+        <aside className="w-full lg:w-[100px] bg-white border-b lg:border-b-0 lg:border-r border-slate-100 flex flex-row lg:flex-col items-center justify-between lg:justify-start p-4 lg:py-10 shrink-0 gap-8 z-30">
+          {/* Logo Brand Icon */}
+          <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-600 p-[2px] shadow-lg flex items-center justify-center transition-transform hover:scale-105 shrink-0">
+            <div className="w-full h-full bg-white rounded-[1.15rem] flex items-center justify-center">
+              <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-[#0a66c2] to-blue-500 flex items-center justify-center text-white text-xs font-black shadow-inner">
+                in
+              </div>
+            </div>
+          </div>
 
-          <main className={`flex-1 overflow-y-auto relative custom-scroll ${activeTab === "dashboard" ? "" : "pb-20 md:pb-10"}`}>
+          {/* Navigation Links */}
+          <nav className="flex flex-row lg:flex-col items-center gap-1 sm:gap-3 lg:gap-6">
+            <SidebarBtn icon={Home} label="Home" active={activeTab === "dashboard"} onClick={() => setActiveTab("dashboard")} />
+            <SidebarBtn icon={User} label="Profile" active={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
+            <SidebarBtn icon={Video} label="Studio" active={activeTab === "studio"} onClick={() => setActiveTab("studio")} />
+            <SidebarBtn icon={MessageSquare} label="Coach" active={activeTab === "coach"} onClick={() => setActiveTab("coach")} />
+            <SidebarBtn icon={Calendar} label="Schedule" active={activeTab === "calendar"} onClick={() => setActiveTab("calendar")} />
+            <SidebarBtn icon={BarChart3} label="Stats" active={activeTab === "analytics"} onClick={() => setActiveTab("analytics")} />
+            <SidebarBtn icon={SettingsIcon} label="Settings" active={activeTab === "settings"} onClick={() => setActiveTab("settings")} />
+            {user.isAdmin && (
+              <SidebarBtn icon={SettingsIcon} label="Admin" active={activeTab === "admin"} onClick={() => setActiveTab("admin")} />
+            )}
+          </nav>
+
+          {/* Sleek Log Out Action */}
+          <button
+            onClick={logout}
+            title="Log Out"
+            className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer mt-auto hidden lg:flex"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </aside>
+
+        {/* Content wrapper with integrated header */}
+        <div className="flex-1 p-6 md:p-8 xl:p-10 flex flex-col gap-8 min-w-0 z-10 overflow-y-auto h-screen custom-scroll pb-20">
+          
+          {/* Global Header */}
+          <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-[#0B192C]">
+                {activeTab === "dashboard" && "LinkedIn Growth Assistant"}
+                {activeTab === "profile" && "Headline & Profile Optimizer"}
+                {activeTab === "studio" && "Production Content Studio"}
+                {activeTab === "coach" && "AI Growth Coach"}
+                {activeTab === "calendar" && "LinkedIn Post Scheduler"}
+                {activeTab === "analytics" && "Metrics & Analytics"}
+                {activeTab === "settings" && "LinkedIn Configurations"}
+                {activeTab === "admin" && "Administrative Portal"}
+              </h1>
+              <p className="text-sm font-semibold text-slate-500 mt-0.5">
+                Hello, {user?.name || "Member"}! Overview
+              </p>
+            </div>
+
+            {/* Header Right Actions */}
+            <div className="flex items-center gap-4 self-end sm:self-auto">
+              <button className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:scale-105 transition-all shadow-sm cursor-pointer">
+                <Mail className="w-4 h-4" />
+              </button>
+              <button className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:scale-105 transition-all shadow-sm relative cursor-pointer">
+                <Bell className="w-4 h-4" />
+                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500" />
+              </button>
+              
+              <div className="flex items-center gap-3 bg-white border border-slate-200 py-1.5 pl-2.5 pr-4 rounded-full shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0a66c2] to-blue-500 text-white font-bold flex items-center justify-center text-sm shadow-inner shrink-0">
+                  {user?.name?.slice(0, 2).toUpperCase() || "ME"}
+                </div>
+                <div className="text-left hidden sm:block">
+                  <p className="text-xs font-black text-[#0B192C] leading-none">{user?.name || "Member"}</p>
+                  <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                    LinkedIn Pro
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Dynamic page content */}
+          <div className="w-full flex-1">
             {activeTab === "dashboard" && (
               <Dashboard onNavigate={setActiveTab} />
             )}
@@ -93,7 +206,7 @@ function AppContent({ defaultTab = "dashboard" }: { defaultTab?: string }) {
             {activeTab === "analytics" && <Analytics />}
             {activeTab === "settings" && <Settings />}
             {activeTab === "admin" && user.isAdmin && <AdminPanel />}
-          </main>
+          </div>
         </div>
       </div>
     </>

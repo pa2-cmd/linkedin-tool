@@ -91,6 +91,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("skilizee_user");
     localStorage.removeItem("skilizee_sso");
+    if (typeof window !== "undefined") {
+      const commonHomeUrl = process.env.NEXT_PUBLIC_SOCIAL_MEDIA_URL || "https://social-media-tool-three.vercel.app";
+      window.location.href = `${commonHomeUrl}/?login=true`;
+    }
   };
 
   const refreshUser = async () => {
