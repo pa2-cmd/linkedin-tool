@@ -18,6 +18,13 @@ export interface User {
 
 const DEFAULT_USERS: User[] = [
   {
+    email: "pa1@skillizee.io",
+    password: "Admin@kittu",
+    roles: ["linkedin", "social_media", "podcast", "admin"],
+    isAdmin: true,
+    name: "Primary Admin"
+  },
+  {
     email: "pa2@skillizee.io",
     password: "Admin@123",
     roles: ["linkedin", "social_media", "podcast", "admin"],
@@ -95,10 +102,20 @@ function readLocalDb(): User[] {
       return [...DEFAULT_USERS];
     }
     const data = fs.readFileSync(LOCAL_DB_PATH, "utf8");
-    const users = JSON.parse(data);
+    let users = JSON.parse(data);
     if (!Array.isArray(users) || users.length === 0) {
       writeLocalDb(DEFAULT_USERS);
       return [...DEFAULT_USERS];
+    }
+    let updated = false;
+    for (const defUser of DEFAULT_USERS) {
+      if (!users.some(u => u.email.toLowerCase() === defUser.email.toLowerCase())) {
+        users.push(defUser);
+        updated = true;
+      }
+    }
+    if (updated) {
+      writeLocalDb(users);
     }
     return users;
   } catch (err) {
@@ -111,11 +128,12 @@ function readLocalDb(): User[] {
 async function seedFirestoreIfEmpty() {
   if (!firestoreDb) return;
   try {
-    const snapshot = await firestoreDb.collection("skilizee_users").limit(1).get();
-    if (snapshot.empty) {
-      console.log("Seeding default users to Firestore from db.ts...");
-      for (const user of DEFAULT_USERS) {
-        await firestoreDb.collection("skilizee_users").doc(user.email).set({
+    for (const user of DEFAULT_USERS) {
+      const docRef = firestoreDb.collection("skilizee_users").doc(user.email);
+      const doc = await docRef.get();
+      if (!doc.exists) {
+        console.log(`Seeding missing user ${user.email} to Firestore from db.ts...`);
+        await docRef.set({
           ...user,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -185,7 +203,7 @@ export async function deleteUser(email: string): Promise<boolean> {
   const normalizedEmail = email.toLowerCase().trim();
 
   // Prevent deleting the main admin
-  if (normalizedEmail === "pa2@skillizee.io") {
+  if (normalizedEmail === "pa2@skillizee.io" || normalizedEmail === "pa1@skillizee.io") {
     throw new Error("Cannot delete system administrator");
   }
 
