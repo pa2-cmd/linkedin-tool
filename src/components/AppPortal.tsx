@@ -14,7 +14,6 @@ import ContentCalendar from "@/components/ContentCalendar";
 import AdminPanel from "@/components/AdminPanel";
 import Login from "@/components/Login";
 import AccessDenied from "@/components/AccessDenied";
-import LandingPage from "@/components/LandingPage";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { useIsOnboarded } from "@/lib/storage";
 
@@ -24,7 +23,6 @@ function AppContent({ defaultTab = "dashboard" }: { defaultTab?: string }) {
   const isOnboarded = useIsOnboarded();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -54,20 +52,18 @@ function AppContent({ defaultTab = "dashboard" }: { defaultTab?: string }) {
   // If not logged in, render the landing page.
   // When they click sign in, show the login component.
   if (!user) {
-    if (showLogin) {
-      return (
-        <div className="relative">
-          <button
-            onClick={() => setShowLogin(false)}
-            className="absolute top-6 left-6 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all z-50 cursor-pointer"
-          >
-            ← Back to Home
-          </button>
-          <Login />
-        </div>
-      );
-    }
-    return <LandingPage onSignInClick={() => setShowLogin(true)} />;
+    const commonHomeUrl = process.env.NEXT_PUBLIC_SOCIAL_MEDIA_URL || "https://social-media-tool-three.vercel.app";
+    return (
+      <div className="relative">
+        <button
+          onClick={() => window.location.href = commonHomeUrl}
+          className="absolute top-6 left-6 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all z-50 cursor-pointer"
+        >
+          ← Back to Home
+        </button>
+        <Login />
+      </div>
+    );
   }
 
   if (!hasAccess) {
