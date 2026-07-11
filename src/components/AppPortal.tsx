@@ -77,12 +77,12 @@ function AppContent({ defaultTab = "dashboard" }: { defaultTab?: string }) {
       )}
 
       <div className="flex h-screen overflow-hidden bg-bg">
-        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        {activeTab !== "dashboard" && <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />}
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          <Header activeTab={activeTab} />
+          {activeTab !== "dashboard" && <Header activeTab={activeTab} />}
 
-          <main className="flex-1 overflow-y-auto relative custom-scroll pb-20 md:pb-10">
+          <main className={`flex-1 overflow-y-auto relative custom-scroll ${activeTab === "dashboard" ? "" : "pb-20 md:pb-10"}`}>
             {activeTab === "dashboard" && (
               <Dashboard onNavigate={setActiveTab} />
             )}
