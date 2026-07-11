@@ -115,7 +115,7 @@ function NetworkPoints({ count }: NetworkPointsProps) {
 
 export default function ThreeNetwork() {
   return (
-    <div className="w-full h-full min-h-[300px] relative rounded-2xl overflow-hidden border border-border/50 bg-bg-surface/20 backdrop-blur-sm flex items-center justify-center">
+    <div className="w-full h-full min-h-[300px] relative rounded-[2rem] overflow-hidden border border-slate-200/60 bg-white/40 backdrop-blur-md flex items-center justify-center shadow-2xl shadow-slate-100">
       <div className="absolute inset-0 z-0">
         <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
           <ambientLight intensity={1.5} />
@@ -124,8 +124,8 @@ export default function ThreeNetwork() {
       </div>
 
       <div className="relative z-10 p-6 pointer-events-none text-center select-none">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-[10px] font-bold text-primary">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50/50 px-3 py-1 text-[10px] font-black text-[#0077b5]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#0077b5] animate-pulse" />
           Connection Topology Active
         </div>
       </div>

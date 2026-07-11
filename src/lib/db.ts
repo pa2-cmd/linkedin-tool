@@ -102,7 +102,7 @@ function readLocalDb(): User[] {
       return [...DEFAULT_USERS];
     }
     const data = fs.readFileSync(LOCAL_DB_PATH, "utf8");
-    let users = JSON.parse(data);
+    const users = JSON.parse(data);
     if (!Array.isArray(users) || users.length === 0) {
       writeLocalDb(DEFAULT_USERS);
       return [...DEFAULT_USERS];
